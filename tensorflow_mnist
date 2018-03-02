@@ -1,0 +1,53 @@
+import tensorflow as tf
+from tensorflow.examples.tutorials.mnist import input_data
+print('dajk')
+#前几次出错原因  数据集没有
+mnist = input_data.read_data_sets('MNIST_data',one_hot=True)
+
+
+print('out')
+
+x = tf.placeholder("float",[None,784])
+# Variable ：可修改的张量
+w = tf.Variable(tf.zeros([784,10]))
+b = tf.Variable(tf.zeros([10]))
+
+
+#实现模型
+y = tf.nn.softmax(tf.matmul(x,w) + b)
+
+#模型实现后需要定义成本或者损失函数（cost or loss），来判断模型的好坏，尽量最小化这个指标
+
+#成本函数 交叉熵 H= 求和（y_*log(y)） y是预测的输出 y_是实际的输出
+
+#为了计算交叉熵，先定义一个存放正确输出的值
+y_ = tf.placeholder("float",[None,10])
+#计算交叉熵
+cross_entrocpy = -tf.reduce_sum(y_ * tf.log(y)) 
+
+#选择优化算法来修改变量以及降低成本
+train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entrocpy)
+#学习率为0.01 
+
+#初始化创建的变量
+init = tf.initialize_all_variables()
+#在一个Session 里面启动模型，并进行初始化变量
+sess = tf.Session()
+sess.run(init)
+
+#开始训练模型
+for i in range(1000):
+    #随机抓取训练数据中的100个批处理数据点
+    batch_xs,batch_ys = mnist.train.next_batch(100)
+    sess.run(train_step,feed_dict={x:batch_xs,y_:batch_ys})
+    
+correct_prediction = tf.equal(tf.argmax(y,1),tf.argmax(y_,1))
+#对上面的bool值转化为浮点数取平均值
+accuracy = tf.reduce_mean(tf.cast(correct_prediction,"float"))
+print(sess.run(accuracy,feed_dict={x:mnist.test.images,y_:mnist.test.labels}))
+    
+
+
+
+
+
